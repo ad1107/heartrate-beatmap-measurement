@@ -1,3 +1,5 @@
+# Only the web scraping stuff.
+
 import time
 
 from selenium import webdriver
@@ -27,7 +29,7 @@ def scrape_heart_rate():
 
         # Extraction
         heart_rate_element = driver.find_element(By.CLASS_NAME, 'heartrate')
-        heart_rate = heart_rate_element.text.strip()
+        heart_rate = heart_rate_element.text.strip()    
 
         return heart_rate
 
@@ -35,6 +37,10 @@ def scrape_heart_rate():
         print(f"An error occurred: {e}")
         return None
 
+
+# Trying to do the accuracy
+# (if it actually show the heart rate, or just spits out "0".)
+    
 
 valid = 0
 zero = 0
@@ -50,6 +56,7 @@ while True:
         zero += 1
     else:
         valid += 1
+    print("attempt:", valid+zero)
     print('zero:', zero, '\nvalid:', valid, '\nratio (%): ', zero / (valid + zero) * 100)
 
 driver.quit()

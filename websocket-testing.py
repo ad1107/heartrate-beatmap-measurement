@@ -1,31 +1,17 @@
+# My code for testing a websocket website (localhost:24050/ws)
+
 import asyncio
 import json
 
 import websockets
 
-print("WebSocket Server Tester (JSON Format)")
-
-address = input("Enter address: ")
-
-if address.strip() == '':
-    print("Invalid address.")
-    exit()
-
-port = input("Enter port (if necessary): ")
-path = input("Enter path (if necessary): ")
-
-uri = "ws://" + address
-if port.strip() != '': uri += (':' + port)
-if path.strip() != '': uri += ('/' + path)
-
-print("Connecting to " + uri)
-
+uri = "ws://localhost:24050/ws"
 
 async def websocket_tester():
     try:
         async with websockets.connect(uri) as websocket:
             while True:
-                user_input = input("Enter a variable (e.g., menu.mainMenu.bassDensity), 'all' or 'exit' to quit: ")
+                user_input = input("Enter a variable (e.g., menu.mainMenu.bassDensity), 'all' or 'exit' ")
 
                 if user_input.lower().strip() == 'exit': break
 
@@ -53,7 +39,7 @@ async def websocket_tester():
                                 print(f"The key '{key}' does not exist in the response.")
                             break
                     else:
-                        print(f"{user_input}: {json.dumps(value, indent=2)}")
+                        print(f"{user_input}: {json.dumps(value, indent=2)}") 
 
                 except json.JSONDecodeError:
                     print("Result:", response)
