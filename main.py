@@ -1,4 +1,4 @@
-# Only the web scraping stuff.
+# Only the web scraping stuff. (will be deprecated.)
 
 import time
 
@@ -15,7 +15,7 @@ code = input("Enter your HypeRate code: ")
 if code.strip() == "" or len(code) != 4:
     print("Invalid code.")
     exit()
-
+q
 url = "https://app.hyperate.io/" + code.upper()
 
 print("Scraping using the link: " + url)
@@ -38,13 +38,8 @@ def scrape_heart_rate():
         return None
 
 
-# Trying to do the accuracy
-# (if it actually show the heart rate, or just spits out "0".)
-
-
 valid = 0
 zero = 0
-none = 0
 # Scraping forever until interrupt
 while True:
     heart_rate_value = scrape_heart_rate()
@@ -59,7 +54,7 @@ while True:
         valid += 1
     print("attempt:", valid + zero)
     print(
-        "zero:", zero, "\nvalid:", valid, "\nratio (%): ", zero / (valid + zero) * 100
+        "zero:", zero, "\nvalid:", valid, "\nratio (%): ", valid / (valid + zero) * 100
     )
 
 driver.quit()

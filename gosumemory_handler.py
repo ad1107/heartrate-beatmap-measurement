@@ -26,7 +26,7 @@ class RealtimeGosumemoryWebsocket():
         async with websockets.connect(self.uri) as ws:
             while True:
                 try:
-                    # Create a event task on every message received.
+                    # Create an event task on every message received.
                     asyncio.create_task(self.on_message(await ws.recv()))
                 except websockets.exceptions.ConnectionClosed:
                     # Connection closed.
