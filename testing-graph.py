@@ -32,7 +32,7 @@ def animate(i, data_lst, start_time):
     graph.set_ylabel(
         f"Simulated Heartrate from {start} - {end}", fontsize=15, color="white"
     )
-    graph.set_xlabel("Time (mm:ss)", fontsize=15, color="white")
+    graph.set_xlabel("Time", fontsize=15, color="white")
 
     # White x and y axis line, and spines.
     graph.tick_params(axis="x", colors="white")
@@ -50,8 +50,10 @@ def animate(i, data_lst, start_time):
     step_size = step_size if step_size > 0 else 1
     visible_indices = list(range(0, len(data_lst), step_size))
     graph.set_xticks(visible_indices)
+
+    plt.tick_params(axis="y", labelsize=13)
     graph.set_xticklabels(
-        [x_labels_str[i] for i in visible_indices], rotation=45, ha="right"
+        [x_labels_str[i] for i in visible_indices], rotation=45, ha="right", fontsize=13
     )
 
     graph.annotate(

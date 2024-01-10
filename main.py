@@ -15,7 +15,7 @@ code = input("Enter your HypeRate code: ")
 if code.strip() == "" or len(code) != 4:
     print("Invalid code.")
     exit()
-q
+
 url = "https://app.hyperate.io/" + code.upper()
 
 print("Scraping using the link: " + url)
