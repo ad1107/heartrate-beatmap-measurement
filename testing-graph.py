@@ -9,7 +9,10 @@ from datetime import datetime
 
 
 # animation function
-def animate(i, data_lst, start_time, step_size):
+def animate(i, data_lst, start_time):
+    # Adjust Step Size
+    step_size = 5
+
     # Value Range
     start = 85
     end = 130
@@ -17,14 +20,25 @@ def animate(i, data_lst, start_time, step_size):
     data_lst.append(flt)
     data_lst = data_lst[-100:]
 
+    plt.gcf().set_facecolor("black")  # Black window
+    graph.set_facecolor("black")  # Black background
+
     # Clear the last frame and draw the next frame
     graph.clear()
-    graph.plot(data_lst, marker=".", linestyle="-", color="b")  # Use dots as markers
+    graph.plot(data_lst, marker=".", linestyle="-", color="red")  # Use dots as markers
 
     # Formating
-    graph.set_title("Line Graph Testing")
-    graph.set_ylabel(f"Randomized Value from {start} - {end}")
-    graph.set_xlabel("Time (mm:ss)")
+    graph.set_title("Line Graph Testing", fontsize=30, color="white")
+    graph.set_ylabel(
+        f"Simulated Heartrate from {start} - {end}", fontsize=15, color="white"
+    )
+    graph.set_xlabel("Time (mm:ss)", fontsize=15, color="white")
+
+    # White x and y axis line, and spines.
+    graph.tick_params(axis="x", colors="white")
+    graph.tick_params(axis="y", colors="white")
+    graph.spines["bottom"].set_color("white")  # X-axis line
+    graph.spines["left"].set_color("white")  # Y-axis line
 
     # Calculate elapsed time using the system clock
     elapsed_time = datetime.now() - start_time
@@ -46,8 +60,14 @@ def animate(i, data_lst, start_time, step_size):
         xycoords="axes fraction",
         ha="right",
         va="center",
+        fontsize=15,
+        color="white",
     )
 
+
+# Adjust default window size along with its DPI.
+plt.rcParams["figure.figsize"] = [1366 / 100, 768 / 100]
+plt.rcParams["figure.dpi"] = 75
 
 # Create empty list to store data
 # Create figure and axes objects
@@ -57,11 +77,8 @@ fig, graph = plt.subplots()
 # Set the start time using the system clock
 start_time = datetime.now()
 
-# Step size for x-axis labels
-step_size = 5
-
 # Run the animation and show graph
 ani = animation.FuncAnimation(
-    fig, animate, fargs=(data_lst, start_time, step_size), frames=100, interval=10
+    fig, animate, fargs=(data_lst, start_time), frames=100, interval=200
 )
 plt.show()
