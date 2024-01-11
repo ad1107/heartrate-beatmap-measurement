@@ -2,7 +2,7 @@ import time
 import random
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
-from datetime import datetime, timedelta
+from datetime import datetime
 
 
 # animation function
@@ -22,7 +22,9 @@ def animate(i, data_lst, start_time, x_labels_str):
 
     # Clear the last frame and draw the next frame
     graph.clear()
-    graph.plot(data_lst, marker=".", linestyle="-", color="red")  # Use dots as markers
+    graph.plot(
+        data_lst, marker=".", linestyle="-", markersize=17, color="red"
+    )  # Use dots as markers
 
     # Formatting
     graph.set_title("Line Graph Testing", fontsize=30, color="white")
