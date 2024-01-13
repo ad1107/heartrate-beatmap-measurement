@@ -1,3 +1,4 @@
+import sys  # To allow flushing output.
 import time
 import random
 import matplotlib.pyplot as plt
@@ -6,18 +7,17 @@ from datetime import datetime
 
 
 # animation function
-def animate(data_lst, start_time, x_labels_str):
-    # Adjust Step Size
+def animate(frame, data_lst, start_time, x_labels_str):
+    # Adjust Step Size and overflow.
     step_size = 5
+    overflow = 20
 
     # Value Range
-    start = 85
-    end = 130
+    start, end = 85, 130
     flt = random.uniform(start, end)
     data_lst.append(flt)
-    data_lst = data_lst[
-        -100:
-    ]  # Limit to 100 elements to save memory space, usually the graph does not actually contain that many.
+    data_lst = data_lst[-100:]
+    # Limit to 100 elements to save memory space, usually the graph does not actually contain that many.
 
     plt.gcf().set_facecolor("black")  # Black window
     graph.set_facecolor("black")  # Black background
@@ -50,9 +50,15 @@ def animate(data_lst, start_time, x_labels_str):
     x_labels_str.append(elapsed_str)
     x_labels_str = x_labels_str[-100:]
 
-    # Show the ticks based on the step size
-    step_size = step_size if step_size > 0 else 1
-    visible_indices = list(range(0, len(data_lst), step_size))
+    # Show all values until the data points reach values (to avoid too much texts).
+    if len(data_lst) <= overflow:
+        visible_indices = list(range(len(data_lst)))
+    else:
+        step_size = max(step_size, 1)
+        visible_indices = list(range(0, len(data_lst), step_size)) + [len(data_lst) - 1]
+        # (Including the last x-value)
+
+    # Format the x-axis labels.
     graph.set_xticks(visible_indices)
     graph.set_xticklabels(
         [x_labels_str[i] for i in visible_indices], rotation=45, ha="right", fontsize=13
@@ -61,6 +67,7 @@ def animate(data_lst, start_time, x_labels_str):
     # Increase font size for label y.
     plt.tick_params(axis="y", labelsize=13)
 
+    # Display the elapsed time annotation
     graph.annotate(
         f"Elapsed Time: {elapsed_str}",
         (0.85, 0.95),  # Coordinations
@@ -70,6 +77,8 @@ def animate(data_lst, start_time, x_labels_str):
         fontsize=15,
         color="white",
     )
+    sys.stdout.write("\rNumber of points: " + str(len(data_lst)))
+    sys.stdout.flush()
 
 
 # Adjust default window size along with its DPI.
