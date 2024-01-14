@@ -1,20 +1,26 @@
 # Graph approach for inputting values to the console by hand
-# Credit: 0x2ee08
 
-import sys  # To allow flushing output.
+import sys  # For flushing output
 import time
+import random  # RNG
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+
+# Get current time
 from datetime import datetime
 
+# Smooth line
+import numpy as np
+from scipy.interpolate import interp1d
 
-# animation function
-def animate(frame, data_lst, start_time, x_labels_str):
+
+# Animation function
+def animate(frame, data_lst, start_time, x_labels_str, smooth=False):
     # Adjust Step Size and overflow.
     step_size = 5
     overflow = 20
 
-    # Automatically advance to the next frame, for initialize formatting.
+    # Automatically advance to the next frame for initialization formatting.
     if frame == 0:
         frame += 1
     else:
@@ -22,18 +28,41 @@ def animate(frame, data_lst, start_time, x_labels_str):
         flt = int(input())
         data_lst.append(flt)
     data_lst = data_lst[-100:]
-    # Limit to 100 elements to save memory space, usually the graph does not actually contain that many.
+    # Limit to 100 elements to save memory space; usually, the graph does not actually contain that many.
+
+    # Apply smoothing if there are 4 or more data points
+    if len(data_lst) >= 4 and smooth:
+        x = np.arange(len(data_lst))
+        cubic_interpolation_model = interp1d(x, data_lst, kind="cubic")
+        x_smooth = np.linspace(0, len(data_lst) - 1, 500)
+        data_lst_smooth = cubic_interpolation_model(x_smooth)
+    else:
+        x_smooth = np.arange(len(data_lst))
+        data_lst_smooth = data_lst
 
     plt.gcf().set_facecolor("black")  # Black window
     graph.set_facecolor("black")  # Black background
 
     # Clear the last frame and draw the next frame
     graph.clear()
-    graph.plot(
-        data_lst, marker=".", linestyle="-", markersize=17, color="red"
-    )  # Use dots as markers, dash for line
 
-    # Formatting labels
+    # Plot the smooth line
+    graph.plot(
+        x_smooth, data_lst_smooth, linestyle="-", color="red", label="Smooth Line"
+    )
+
+    # Plot the data points
+    graph.plot(
+        range(len(data_lst)),
+        data_lst,
+        marker="o",
+        markersize=8,
+        linestyle="",
+        color="red",
+        label="Data Points",
+    )
+
+    # Formatting for the graph
     graph.set_title("Line Graph Testing", fontsize=30, color="white")
     graph.set_ylabel("Simulated Heartrate", fontsize=15, color="white")
     graph.set_xlabel("Time", fontsize=15, color="white")
@@ -53,7 +82,7 @@ def animate(frame, data_lst, start_time, x_labels_str):
     x_labels_str.append(elapsed_str)
     x_labels_str = x_labels_str[-100:]
 
-    # Show all values until the data points reach values (to avoid too much texts).
+    # Show all values until the data points reach a certain threshold (to avoid too much text).
     if len(data_lst) <= overflow:
         visible_indices = list(range(len(data_lst)))
     else:
@@ -80,6 +109,8 @@ def animate(frame, data_lst, start_time, x_labels_str):
         fontsize=15,
         color="white",
     )
+
+    # Display the number of points in the console
     sys.stdout.write("\rNumber of points: " + str(len(data_lst)) + "\n")
     sys.stdout.flush()
 
@@ -98,8 +129,12 @@ fig, graph = plt.subplots()
 # Set the start time using the system clock
 start_time = datetime.now()
 
-# Run the animation and show graph
+# Run the animation and show graph with smoothing enabled
 ani = animation.FuncAnimation(
-    fig, animate, fargs=(data_lst, start_time, x_labels_str), frames=100, interval=500
+    fig,
+    animate,
+    fargs=(data_lst, start_time, x_labels_str, True),
+    frames=100,
+    interval=500,
 )
 plt.show()
