@@ -1,21 +1,19 @@
-# Your implementation in trying to get realtime json response.
+# ÙNFINISHED
 
 import websockets, asyncio, json
 from typing import Tuple
 class OurWebsocketBase():
     def __init__(self, uri: str):
         self.uri = uri
-        self.cache = {}
+        self.cache = {"last_message": '{"null": "null"}'}
         self.awaiting = {}
         self.queue = []
         self.stopped = False
     async def on_message(self, message) -> None:
         self.cache["last_message"] = message
-        self.awaiting["message"] = False
         return
     async def wait_for_message(self, check = lambda x: True) -> str | dict:
-        self.awaiting["message"] = True
-        while not self.awaiting.get("message") or not check(self.cache.get("last_message", "")): await asyncio.sleep(0.1)
+        while not self.awaiting.get("message") or not check(self.cache.get("last_message", "{}")): pass
         try:
             _final = json.loads(self.cache.get("last_message", ""))
         except json.JSONDecodeError:
@@ -28,26 +26,34 @@ class OurWebsocketBase():
         pass
     async def connect_ws(self):
         async with websockets.connect(self.uri) as ws:
+            print('DEBUG Connected to websocket')
             self.websocket = ws
             await self.before_wsloop(ws)
+            print('DEBUG done beforeloop')
             while not self.stopped:
                 try:
                     # Create a event task on every message received.
-                    asyncio.create_task(self.on_message(await ws.recv()))
+                    print('DEBUG waiting for message')
+                    message = await ws.recv()
+                    print('DEBUG received message')
+                    asyncio.create_task(self.on_message(message))
+                    print('DEBUG create handler task')
                     for message in self.queue:
-                        self.quene.remove(message)
+                        self.queue.remove(message)
                         await ws.send(message)
                 except websockets.exceptions.ConnectionClosed:
                     self.stopped = True
                     break
             else:
+                print('DEBUG afterloop:')
                 await self.after_wsloop(ws)
-    def connect(self):
-        asyncio.run(self.connect_ws())
+            print('DEBUG broken')
+    async def connect(self):
+        return asyncio.create_task(self.connect_ws())
 
 class HyperateWebsocket(OurWebsocketBase):
     def __init__(self, api_key: str, code: str):
-        super().__init__(uri="wss://app.hyperate.io/socket/websocket?token=" + api_key)
+        super().__init__(uri="ws://app.hyperate.io/socket/websocket?token=" + api_key)
         self.code = code
         self.cache["latestHeartrate"] = 0
     async def on_message(self, message) -> None:
@@ -94,12 +100,14 @@ class HyperateWebsocket(OurWebsocketBase):
         _topic = json.loads(x).get("topic")
         return _event == "phx_reply" and _topic == f"hr:{self.code}"
     async def before_wsloop(self, ws):
+        print("DEBUG .")
         task = asyncio.create_task(self.wait_for_message(self._check_1))
-        _send1 = asyncio.create_task(ws.send(json.dumps({ "topic": f"hr:{self.code}", "event": "phx_join", "payload": {}, "ref": 0 })))
-        await _send1
-        await task
-        _r = task.result()
-        assert _r.get("payload").get("status") == "ok", _r
+        await ws.send(json.dumps({ "topic": f"hr:{self.code}", "event": "phx_join", "payload": {}, "ref": 0 }))
+        print("DEBUG ..")
+        print("DEBUG ...")
+        #await task
+        #_r = task.result()
+        #assert _r.get("payload", {}).get("status") == "ok", _r
         asyncio.create_task(self.stop_on_phx_close())
         return asyncio.create_task(self.keep_alive(ws))
     async def after_wsloop(self, ws):
