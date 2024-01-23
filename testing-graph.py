@@ -13,7 +13,9 @@ from scipy.interpolate import interp1d
 
 
 # Animation function
-def animate(frame, data_lst, start_time, x_labels_str, smooth = False):     # Flag to check if smoothing is enabled
+def animate(
+    frame, data_lst, start_time, x_labels_str, smooth=False
+):  # Flag to check if smoothing is enabled
     # Adjust Step Size and overflow.
     step_size = 8
     overflow = 20
@@ -24,7 +26,7 @@ def animate(frame, data_lst, start_time, x_labels_str, smooth = False):     # Fl
     data_lst.append(flt)
     data_lst = data_lst[-100:]
     # Limit to 100 elements to save memory space, usually the graph does not actually contain that many.
-    
+
     # Apply smoothing if there are 4 or more data points
     if len(data_lst) >= 4 and smooth:
         x = np.arange(len(data_lst))
