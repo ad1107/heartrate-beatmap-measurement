@@ -2,20 +2,19 @@
 
 import websockets, asyncio, json
 from typing import Tuple
-
-
-class OurWebsocketBase:
+class OurWebsocketBase():
     def __init__(self, uri: str):
         self.uri = uri
         self.cache = {"last_message": '{"null": "null"}'}
         self.awaiting = {}
         self.queue = []
         self.stopped = False
-
     async def on_message(self, message) -> None:
         self.cache["last_message"] = message
+        self.awaiting["message"] = False
         return
     async def wait_for_message(self, check = lambda x: True) -> str | dict:
+        self.awaiting["message"] = True
         while not self.awaiting.get("message") or not check(self.cache.get("last_message", "{}")): pass
         try:
             _final = json.loads(self.cache.get("last_message", ""))
@@ -25,10 +24,8 @@ class OurWebsocketBase:
 
     async def before_wsloop(self, ws):
         pass
-
     async def after_wsloop(self, ws):
         pass
-
     async def connect_ws(self):
         async with websockets.connect(self.uri) as ws:
             print('DEBUG Connected to websocket')
@@ -56,13 +53,58 @@ class OurWebsocketBase:
     async def connect(self):
         return asyncio.create_task(self.connect_ws())
 
+class GosumemoryMenuStates():
+    NotRunning = -1
+    MainMenu = 0
+    EditingMap = 1
+    Playing = 2
+    GameShutdownAnimation = 3
+    SongSelectEdit = 4
+    SongSelect = 5
+    WIP_NoIdeaWhatThisIs = 6
+    ResultsScreen = 7
+    GameStartupAnimation = 10
+    MultiplayerRooms = 11
+    MultiplayerRoom = 12
+    MultiplayerSongSelect = 13
+    MultiplayerResultsscreen = 14
+    OsuDirect = 15
+    RankingTagCoop = 17
+    RankingTeam = 18
+    ProcessingBeatmaps = 19
+    Tourney = 22
+    Unknown = -2
 
+class RealtimeGosumemoryWebsocket(OurWebsocketBase):
+    def __init__(self, port: int = 24050, uri: str = None):
+        if uri is None:
+            uri = f"ws://localhost:{port}/ws"
+        super().__init__(uri=uri)
+        self.cache["menuState"] = GosumemoryMenuStates.NotRunning
+    
+    async def state_change_handler(self, state: int, menu: dict):
+        """
+        This function is used to detect & handle states from osu! to convert to our own state.
+        """
+    async def on_message(self, message) -> None:
+        await asyncio.sleep(0.01)
+        await super().on_message(message)
+        _resp = json.loads(message)
+        assert isinstance(_resp, dict), _resp
+        _menu = _resp.get("menu")
+        assert isinstance(_menu, dict), _menu
+        _state = _menu.get("state")
+        assert isinstance(_state, int), _state
+        await self.state_change_handler(_state, _menu)
+        self.cache["menuState"] = _state
+
+
+    
 class HyperateWebsocket(OurWebsocketBase):
     def __init__(self, api_key: str, code: str):
         super().__init__(uri="ws://app.hyperate.io/socket/websocket?token=" + api_key)
         self.code = code
         self.cache["latestHeartrate"] = 0
-
     async def on_message(self, message) -> None:
         await asyncio.sleep(0.01)
         await super().on_message(message)
@@ -82,7 +124,7 @@ class HyperateWebsocket(OurWebsocketBase):
         func = lambda x: json.loads(x).get("event") == "hr_update"
         _resp = await self.wait_for_message(func)
         return _resp.get("payload").get("hr")
-
+    
     async def wait_for_heartrate_change(self) -> Tuple[int, int]:
         while True:
             _old = self.cache.get("latestHeartrate")
@@ -92,35 +134,20 @@ class HyperateWebsocket(OurWebsocketBase):
 
     async def keep_alive(self, ws):
         while not self.stopped:
-            asyncio.create_task(
-                ws.send(
-                    json.dumps(
-                        {
-                            "topic": "phoenix",
-                            "event": "heartbeat",
-                            "payload": {},
-                            "ref": 0,
-                        }
-                    )
-                )
-            )
+            asyncio.create_task(ws.send(json.dumps({ "topic": "phoenix", "event": "heartbeat", "payload": {}, "ref": 0 })))
             await asyncio.sleep(7)
-
     async def stop_on_phx_close(self):
         def _check(x):
             _event = json.loads(x).get("event")
             _topic = json.loads(x).get("topic")
             return _event == "phx_close" and _topic == f"hr:{self.code}"
-
         await self.wait_for_message(_check)
         self.stopped = True
-        return
-
+        return 
     def _check_1(self, x):
         _event = json.loads(x).get("event")
         _topic = json.loads(x).get("topic")
         return _event == "phx_reply" and _topic == f"hr:{self.code}"
-
     async def before_wsloop(self, ws):
         print("DEBUG .")
         task = asyncio.create_task(self.wait_for_message(self._check_1))
@@ -132,30 +159,14 @@ class HyperateWebsocket(OurWebsocketBase):
         #assert _r.get("payload", {}).get("status") == "ok", _r
         asyncio.create_task(self.stop_on_phx_close())
         return asyncio.create_task(self.keep_alive(ws))
-
     async def after_wsloop(self, ws):
-        print("Stopped gracefully")  # DEBUG
+        print("Stopped gracefully") # DEBUG
 
+    
+    
 
 # UNFINISHED
-class RealtimeGosumemoryWebsocket(OurWebsocketBase):
-    async def on_message(self, message):
-        await super().on_message(message)
-        try:
-            _resp = json.loads(message)
-        except json.JSONDecodeError:
-            print("JSON Decode Error")
-            return
-        _menu = _resp.get("menu")
-        assert isinstance(_menu, dict), _menu
-        _state = _menu.get("state")  # menu.state final output.
-        assert isinstance(_state, int), _state
-        if _state != self.cache.get("currentState"):
-            # print(f"State changed from {self.cache.get('currentState')} to {_state}")
 
-            print("menu.state: ", _state)
-
-            self.cache["currentState"] = _state
 
 
 if __name__ == "__main__":
