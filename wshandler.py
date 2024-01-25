@@ -9,13 +9,16 @@ class OurWebsocketBase():
         self.awaiting = {}
         self.queue = []
         self.stopped = False
+        self.connected = False
+        self.connnection_event = asyncio.Event()
     async def on_message(self, message) -> None:
+        #print('DEBUG on_message called')
         self.cache["last_message"] = message
         self.awaiting["message"] = False
         return
     async def wait_for_message(self, check = lambda x: True) -> str | dict:
         self.awaiting["message"] = True
-        while not self.awaiting.get("message") or not check(self.cache.get("last_message", "{}")): pass
+        while (not self.awaiting.get("message")) or (not check(self.cache.get("last_message", "{}"))): pass
         try:
             _final = json.loads(self.cache.get("last_message", ""))
         except json.JSONDecodeError:
@@ -27,19 +30,22 @@ class OurWebsocketBase():
     async def after_wsloop(self, ws):
         pass
     async def connect_ws(self):
+        #print("DEBUG blocking?")
         async with websockets.connect(self.uri) as ws:
             print('DEBUG Connected to websocket')
+            self.connected = True
             self.websocket = ws
             await self.before_wsloop(ws)
-            print('DEBUG done beforeloop')
+            #print('DEBUG done beforeloop')
+            self.connnection_event.set()
             while not self.stopped:
                 try:
                     # Create a event task on every message received.
-                    print('DEBUG waiting for message')
+                    #print('DEBUG waiting for message')
                     message = await ws.recv()
-                    print('DEBUG received message')
+                    #print('DEBUG received message')
                     asyncio.create_task(self.on_message(message))
-                    print('DEBUG create handler task')
+                    #print('DEBUG create handler task')
                     for message in self.queue:
                         self.queue.remove(message)
                         await ws.send(message)
@@ -47,11 +53,16 @@ class OurWebsocketBase():
                     self.stopped = True
                     break
             else:
-                print('DEBUG afterloop:')
+                #print('DEBUG afterloop:')
                 await self.after_wsloop(ws)
-            print('DEBUG broken')
+            #print('DEBUG broken')
     async def connect(self):
-        return asyncio.create_task(self.connect_ws())
+        #print('DEBUG connecting')
+        task = asyncio.create_task(self.connect_ws())
+        await self.connnection_event.wait()
+        await asyncio.sleep(0)
+        #print(task)
+        while not self.connected: pass
 
 class GosumemoryMenuStates():
     NotRunning = -1
