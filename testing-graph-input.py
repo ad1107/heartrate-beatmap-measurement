@@ -15,9 +15,11 @@ from scipy.interpolate import interp1d
 
 
 # Animation function
-def animate(frame, data_lst, start_time, x_labels_str, smooth=False):
+def animate(
+    frame, data_list, start_time, Ox_labels, smooth=False, colors_list=[]
+):  # Flag to check if smoothing is enabled
     # Adjust Step Size and overflow.
-    step_size = 5
+    step_size = 8
     overflow = 20
 
     # Automatically advance to the next frame for initialization formatting.
@@ -26,41 +28,25 @@ def animate(frame, data_lst, start_time, x_labels_str, smooth=False):
     else:
         # Start taking input or receiving data.
         flt = int(input())
-        data_lst.append(flt)
-    data_lst = data_lst[-100:]
+        data_list.append(flt)
+    data_list = data_list[-100:]
     # Limit to 100 elements to save memory space; usually, the graph does not actually contain that many.
 
     # Apply smoothing if there are 4 or more data points
-    if len(data_lst) >= 4 and smooth:
-        x = np.arange(len(data_lst))
-        cubic_interpolation_model = interp1d(x, data_lst, kind="cubic")
-        x_smooth = np.linspace(0, len(data_lst) - 1, 500)
+    if len(data_list) >= 4 and smooth:
+        x = np.arange(len(data_list))
+        cubic_interpolation_model = interp1d(x, data_list, kind="cubic")
+        x_smooth = np.linspace(0, len(data_list) - 1, 500)
         data_lst_smooth = cubic_interpolation_model(x_smooth)
     else:
-        x_smooth = np.arange(len(data_lst))
-        data_lst_smooth = data_lst
+        x_smooth = np.arange(len(data_list))
+        data_lst_smooth = data_list
 
     plt.gcf().set_facecolor("black")  # Black window
     graph.set_facecolor("black")  # Black background
 
     # Clear the last frame and draw the next frame
     graph.clear()
-
-    # Plot the smooth line
-    graph.plot(
-        x_smooth, data_lst_smooth, linestyle="-", color="red", label="Smooth Line"
-    )
-
-    # Plot the data points
-    graph.plot(
-        range(len(data_lst)),
-        data_lst,
-        marker="o",
-        markersize=8,
-        linestyle="",
-        color="red",
-        label="Data Points",
-    )
 
     # Formatting for the graph
     graph.set_title("Line Graph Testing", fontsize=30, color="white")
@@ -79,21 +65,52 @@ def animate(frame, data_lst, start_time, x_labels_str, smooth=False):
     elapsed_str = time.strftime("%M:%S", time.gmtime(elapsed_seconds))
 
     # Append the "Time elapsed" value to x.
-    x_labels_str.append(elapsed_str)
-    x_labels_str = x_labels_str[-100:]
+    # Note: This array can be modified for showing status, such as "pausing"
+    # Simulated Pause
+    if elapsed_seconds > 4 and elapsed_seconds < 10:
+        Ox_labels.append("Paused")
+        colors_list.append("blue")
+    elif elapsed_seconds > 15 and elapsed_seconds < 20:
+        Ox_labels.append("Failed")
+        colors_list.append("purple")
+    else:
+        Ox_labels.append(elapsed_str)
+        colors_list.append("red")
+
+    # Limit to 100 elements to save memory space, usually the graph does not actually contain that many.
+    colors_list = colors_list[-100:]
+    Ox_labels = Ox_labels[-100:]
+
+    # Plot the smooth line with colors from the colors_list array
+    for i in range(len(x_smooth) - 1):
+        x1, x2, y1, y2 = (
+            x_smooth[i],
+            x_smooth[i + 1],
+            data_lst_smooth[i],
+            data_lst_smooth[i + 1],
+        )
+        color = colors_list[int(x1)]
+        graph.plot([x1, x2], [y1, y2], color=color, linewidth=2)
+
+    # Plot the data points with colors from the colors_list array
+    for i, (x, y) in enumerate(zip(range(len(data_list)), data_list)):
+        color = colors_list[i]
+        graph.plot(x, y, marker="o", markersize=8, color=color)
 
     # Show all values until the data points reach a certain threshold (to avoid too much text).
-    if len(data_lst) <= overflow:
-        visible_indices = list(range(len(data_lst)))
+    if len(data_list) <= overflow:
+        visible_indices = list(range(len(data_list)))
     else:
         step_size = max(step_size, 1)
-        visible_indices = list(range(0, len(data_lst), step_size)) + [len(data_lst) - 1]
+        visible_indices = list(range(0, len(data_list), step_size)) + [
+            len(data_list) - 1
+        ]
         # (Including the last x-value)
 
-    # Format the x-axis labels.
+    # Format the x-axis labels, with 45-degree rotation.
     graph.set_xticks(visible_indices)
     graph.set_xticklabels(
-        [x_labels_str[i] for i in visible_indices], rotation=45, ha="right", fontsize=13
+        [Ox_labels[i] for i in visible_indices], rotation=45, ha="right", fontsize=13
     )
 
     # Increase font size for label y.
@@ -110,9 +127,11 @@ def animate(frame, data_lst, start_time, x_labels_str, smooth=False):
         color="white",
     )
 
-    # Display the number of points in the console
-    sys.stdout.write("\rNumber of points: " + str(len(data_lst)) + "\n")
-    sys.stdout.flush()
+    # DEBUGGING
+    print("Number of points:", len(data_list))
+    # print(data_list)
+    # print(Ox_labels)
+    # print(colors_list)
 
 
 # Adjust default window size along with its DPI.
@@ -120,6 +139,7 @@ plt.rcParams["figure.figsize"] = [1366 / 100, 768 / 100]
 plt.rcParams["figure.dpi"] = 75
 
 # Create empty list to store data
+colors_list = []
 data_lst = []
 x_labels_str = []
 
@@ -133,8 +153,8 @@ start_time = datetime.now()
 ani = animation.FuncAnimation(
     fig,
     animate,
-    fargs=(data_lst, start_time, x_labels_str, True),
+    fargs=(data_lst, start_time, x_labels_str, True, colors_list),
     frames=100,
-    interval=500,
+    interval=100,
 )
 plt.show()
