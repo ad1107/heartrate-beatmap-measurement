@@ -25,7 +25,6 @@ def animate(
     flt = int(random.uniform(start, end))
     data_list.append(flt)
     data_list = data_list[-100:]
-    # Limit to 100 elements to save memory space, usually the graph does not actually contain that many.
 
     # Apply smoothing if there are 4 or more data points
     if len(data_list) >= 4 and smooth:
@@ -42,22 +41,6 @@ def animate(
 
     # Clear the last frame and draw the next frame
     graph.clear()
-
-    # Plot the smooth line with colors from the colors_list array
-    for i in range(len(x_smooth) - 1):
-        x1, x2, y1, y2 = (
-            x_smooth[i],
-            x_smooth[i + 1],
-            data_lst_smooth[i],
-            data_lst_smooth[i + 1],
-        )
-        color = colors_list[int(x1)]
-        graph.plot([x1, x2], [y1, y2], color=color, linewidth=2)
-
-    # Plot the data points with colors from the colors_list array
-    for i, (x, y) in enumerate(zip(range(len(data_list)), data_list)):
-        color = colors_list[i]
-        graph.plot(x, y, marker="o", markersize=8, color=color)
 
     # Formatting for the graph
     graph.set_title("Line Graph Testing", fontsize=30, color="white")
@@ -79,7 +62,6 @@ def animate(
 
     # Append the "Time elapsed" value to x.
     # Note: This array can be modified for showing status, such as "pausing"
-
     # Simulated Pause
     if elapsed_seconds > 4 and elapsed_seconds < 10:
         Ox_labels.append("Paused")
@@ -91,9 +73,25 @@ def animate(
         Ox_labels.append(elapsed_str)
         colors_list.append("red")
 
-    Ox_labels = Ox_labels[-100:]
-    colors_list = colors_list[-100:]
     # Limit to 100 elements to save memory space, usually the graph does not actually contain that many.
+    colors_list = colors_list[-100:]
+    Ox_labels = Ox_labels[-100:]
+
+    # Plot the smooth line with colors from the colors_list array
+    for i in range(len(x_smooth) - 1):
+        x1, x2, y1, y2 = (
+            x_smooth[i],
+            x_smooth[i + 1],
+            data_lst_smooth[i],
+            data_lst_smooth[i + 1],
+        )
+        color = colors_list[int(x1)]
+        graph.plot([x1, x2], [y1, y2], color=color, linewidth=2)
+
+    # Plot the data points with colors from the colors_list array
+    for i, (x, y) in enumerate(zip(range(len(data_list)), data_list)):
+        color = colors_list[i]
+        graph.plot(x, y, marker="o", markersize=8, color=color)
 
     # Show all values until the data points reach a certain threshold (to avoid too much text).
     if len(data_list) <= overflow:
@@ -128,15 +126,16 @@ def animate(
     # DEBUGGING
     print("Number of points:", len(data_list))
     # print(data_list)
-    print(Ox_labels)
-    print(colors_list)
+    # print(Ox_labels)
+    # print(colors_list)
+
 
 # Adjust default window size along with its DPI.
 plt.rcParams["figure.figsize"] = [1366 / 100, 768 / 100]
 plt.rcParams["figure.dpi"] = 75
 
 # Create empty list to store data
-colors_list = ["red"]
+colors_list = []
 data_lst = []
 x_labels_str = []
 
@@ -152,6 +151,6 @@ ani = animation.FuncAnimation(
     animate,
     fargs=(data_lst, start_time, x_labels_str, True, colors_list),
     frames=100,
-    interval=500,
+    interval=100,
 )
 plt.show()
