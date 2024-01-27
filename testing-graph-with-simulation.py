@@ -1,3 +1,5 @@
+# RNG-based approach with simulation.
+
 import sys  # For flushing output
 import time
 import random  # RNG
@@ -63,10 +65,10 @@ def animate(
     # Append the "Time elapsed" value to x.
     # Note: This array can be modified for showing status, such as "pausing"
     # Simulated Pause
-    if elapsed_seconds > 4 and elapsed_seconds < 10:
+    if elapsed_seconds >= 5  and elapsed_seconds <= 10:
         Ox_labels.append("Paused")
         colors_list.append("blue")
-    elif elapsed_seconds > 15 and elapsed_seconds < 20:
+    elif elapsed_seconds >= 15 and elapsed_seconds <= 20:
         Ox_labels.append("Failed")
         colors_list.append("purple")
     else:
@@ -124,7 +126,8 @@ def animate(
     )
 
     # DEBUGGING
-    print("Number of points:", len(data_list))
+    # print("Number of points:", len(data_list))
+    print(colors_list[-1], int(elapsed_seconds))
     # print(data_list)
     # print(Ox_labels)
     # print(colors_list)
