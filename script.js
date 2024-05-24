@@ -1,3 +1,6 @@
+const config = require("./config");
+const apiKey = config.apiKey;
+
 // Define the color change functions for the line graph
 const down = (ctx, value) =>
   ctx.p0.parsed.y > ctx.p1.parsed.y ? value : undefined;
@@ -88,7 +91,7 @@ if (trackerID) {
 let gameMode, state;
 
 function connectToHyperateWebSocket(ID) {
-  const API_KEY = ""; 
+  const API_KEY = apiKey;
   const API_URL = `wss://app.hyperate.io/socket/websocket?token=${API_KEY}`;
   let connection = new WebSocket(API_URL);
 
