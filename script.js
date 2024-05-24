@@ -1,13 +1,6 @@
 import { apiKey } from "./config.js";
 
-// Define the color change functions for the line graph
-const down = (ctx, value) =>
-  ctx.p0.parsed.y > ctx.p1.parsed.y ? value : undefined;
-const up = (ctx, value) =>
-  ctx.p0.parsed.y < ctx.p1.parsed.y ? value : undefined;
-const stagnate = (ctx, value) =>
-  ctx.p0.parsed.y == ctx.p1.parsed.y ? value : undefined;
-
+// Function to format milliseconds to mm:ss format
 function mstommss(ms) {
   var isNeg = ms < 0;
   if (isNeg) ms = Math.abs(ms);
@@ -35,10 +28,8 @@ var data = {
       pointRadius: 5,
       pointBackgroundColor: "#ffffff",
       segment: {
-        borderColor: (ctx) =>
-          down(ctx, "rgb(192, 57, 43)") ||
-          up(ctx, "rgb(22, 160, 133)") ||
-          stagnate(ctx, "rgb(149, 165, 166)"),
+        borderColor: (ctx, timeChanged) =>
+          timeChanged ? "rgb(192, 57, 43)" : "rgb(22, 160, 133)",
       },
     },
   ],
@@ -103,7 +94,9 @@ if (trackerID) {
   connectToHyperateWebSocket(trackerID);
 }
 
-let gameMode, state;
+let state, timeelapsed, songTitle, timeChanged;
+let shouldUpdateChart = false;
+let prevTimeElapsed = 0;
 
 function connectToHyperateWebSocket(ID) {
   const API_KEY = apiKey;
@@ -135,7 +128,7 @@ function connectToHyperateWebSocket(ID) {
 
   connection.onmessage = (message) => {
     const data = JSON.parse(message.data);
-    if (data.event === "hr_update") {
+    if (data.event === "hr_update" && shouldUpdateChart) {
       const heartRate = data.payload.hr;
       if (heartRate != 0) {
         updateChart(heartRate);
@@ -169,27 +162,24 @@ function connectToGosumemoryWebSocket() {
       const data = JSON.parse(event.data);
       const menu = data.menu;
       const gameplay = data.gameplay;
-      gameMode = gameplay.gameMode;
-      state = menu.state;
+      const newState = menu.state;
+      songTitle = menu.bm.metadata.title;
 
-      let finaltime;
-      let timemp3 = mstommss(menu.bm.time.mp3 - menu.bm.time.firstObj);
-      let timefull = mstommss(menu.bm.time.full - menu.bm.time.firstObj);
-      let timecurrent = mstommss(menu.bm.time.current);
-      let timeelapsed = mstommss(menu.bm.time.current - menu.bm.time.firstObj);
-      if (state == 0 || state == 2 || state == 7) {
-        if (menu.bm.time.mp3 != 0) finaltime = timeelapsed + " / " + timemp3;
-        else if (menu.bm.time.full != 0)
-          finaltime = timeelapsed + " / " + timefull;
-        else finaltime = timeelapsed;
-      } else {
-        if (menu.bm.time.mp3 != 0) finaltime = timemp3;
-        else if (menu.bm.time.full != 0) finaltime = timefull;
-        else finaltime = "-";
+      if (newState !== state) {
+        if (newState === 2) {
+          clearChart();
+          shouldUpdateChart = true;
+        } else {
+          shouldUpdateChart = false;
+        }
+        state = newState;
       }
 
+      prevTimeElapsed = timeelapsed;
+      timeelapsed = menu.bm.time.current - menu.bm.time.firstObj;
+
       document.getElementById("footer").innerText = `${
-        "State: " + state + " Time:" + finaltime
+        "State: " + state + " | Time Changed? " + timeChanged + "\n"
       }`;
     } catch (error) {
       console.error("Error parsing local WebSocket message:", error);
@@ -210,8 +200,23 @@ connectToGosumemoryWebSocket();
 function updateChart(value) {
   var now = new Date();
   now = now.getHours() + ":" + now.getMinutes() + ":" + now.getSeconds();
-  data.labels.push(now);
-  data.datasets[0].data.push(value);
+
+  document.getElementById("header").innerText = `Current song: ${songTitle}`;
+
+  timeChanged = timeelapsed !== prevTimeElapsed;
+
+  data.labels.push(mstommss(timeelapsed));
+  data.datasets[0].data.push({
+    x: mstommss(timeelapsed),
+    y: value,
+    timeChanged: timeChanged,
+  });
   myChart.update();
   document.getElementById("heartrate-current").innerText = `${value}`;
+}
+
+function clearChart() {
+  data.labels = [];
+  data.datasets[0].data = [];
+  myChart.update();
 }
