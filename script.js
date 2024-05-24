@@ -8,6 +8,22 @@ const up = (ctx, value) =>
 const stagnate = (ctx, value) =>
   ctx.p0.parsed.y == ctx.p1.parsed.y ? value : undefined;
 
+function mstommss(ms) {
+  var isNeg = ms < 0;
+  if (isNeg) ms = Math.abs(ms);
+  var sec = Math.floor(ms / 1000);
+  var min = Math.floor(sec / 60);
+  sec = sec % 60;
+  var res =
+    (isNeg ? "-" : "") +
+    (min < 10 ? "0" : "") +
+    min +
+    ":" +
+    (sec < 10 ? "0" : "") +
+    sec;
+  return res;
+}
+
 var data = {
   labels: [],
   datasets: [
@@ -155,8 +171,25 @@ function connectToGosumemoryWebSocket() {
       const gameplay = data.gameplay;
       gameMode = gameplay.gameMode;
       state = menu.state;
+
+      let finaltime;
+      let timemp3 = mstommss(menu.bm.time.mp3 - menu.bm.time.firstObj);
+      let timefull = mstommss(menu.bm.time.full - menu.bm.time.firstObj);
+      let timecurrent = mstommss(menu.bm.time.current);
+      let timeelapsed = mstommss(menu.bm.time.current - menu.bm.time.firstObj);
+      if (state == 0 || state == 2 || state == 7) {
+        if (menu.bm.time.mp3 != 0) finaltime = timeelapsed + " / " + timemp3;
+        else if (menu.bm.time.full != 0)
+          finaltime = timeelapsed + " / " + timefull;
+        else finaltime = timeelapsed;
+      } else {
+        if (menu.bm.time.mp3 != 0) finaltime = timemp3;
+        else if (menu.bm.time.full != 0) finaltime = timefull;
+        else finaltime = "-";
+      }
+
       document.getElementById("footer").innerText = `${
-        "State: " + state + " Gamemode: " + gameMode
+        "State: " + state + " Time:" + finaltime
       }`;
     } catch (error) {
       console.error("Error parsing local WebSocket message:", error);
@@ -177,10 +210,6 @@ connectToGosumemoryWebSocket();
 function updateChart(value) {
   var now = new Date();
   now = now.getHours() + ":" + now.getMinutes() + ":" + now.getSeconds();
-  if (data.datasets[0].data.length >= 20) {
-    data.labels.shift();
-    data.datasets[0].data.shift();
-  }
   data.labels.push(now);
   data.datasets[0].data.push(value);
   myChart.update();
