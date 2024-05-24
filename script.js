@@ -1,5 +1,4 @@
-const config = require("./config");
-const apiKey = config.apiKey;
+import { apiKey } from "./config.js";
 
 // Define the color change functions for the line graph
 const down = (ctx, value) =>
@@ -156,6 +155,9 @@ function connectToGosumemoryWebSocket() {
       const gameplay = data.gameplay;
       gameMode = gameplay.gameMode;
       state = menu.state;
+      document.getElementById("footer").innerText = `${
+        "State: " + state + " Gamemode: " + gameMode
+      }`;
     } catch (error) {
       console.error("Error parsing local WebSocket message:", error);
     }
@@ -183,7 +185,4 @@ function updateChart(value) {
   data.datasets[0].data.push(value);
   myChart.update();
   document.getElementById("heartrate-current").innerText = `${value}`;
-  document.getElementById("footer").innerText = `${
-    "State: " + state + " Gamemode: " + gameMode
-  }`;
 }
