@@ -1,5 +1,4 @@
 .env 
 .idea/
 .vscode/
-test.*
-__pycache__/
+config.js
