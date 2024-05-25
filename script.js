@@ -2,9 +2,11 @@ let timeChanged;
 let pausedData = [];
 let minHeartRate = Infinity;
 let maxHeartRate = -Infinity;
-
-const paused = (ctx, value) => (timeChanged ? value : undefined);
-const unpaused = (ctx, value) => (!timeChanged ? value : undefined);
+let overflow = 12;
+let steps = 3;
+let state, timeelapsed, songTitle;
+let shouldUpdateChart = false;
+let prevTimeElapsed = 0;
 
 import { apiKey } from "./config.js";
 
@@ -43,9 +45,6 @@ var data = {
     },
   ],
 };
-
-let overflow = 12;
-let steps = 3;
 
 var config = {
   type: "line",
@@ -101,10 +100,6 @@ const trackerID = urlParams.get("code");
 if (trackerID) {
   connectToHyperateWebSocket(trackerID);
 }
-
-let state, timeelapsed, songTitle;
-let shouldUpdateChart = false;
-let prevTimeElapsed = 0;
 
 function connectToHyperateWebSocket(ID) {
   const API_KEY = apiKey;
@@ -215,7 +210,6 @@ function updateChart(value) {
   data.labels.push(timeChanged ? mstommss(timeelapsed) : "Paused");
   data.datasets[0].data.push(value);
 
-  // Update min and max heart rate
   if (value < minHeartRate) minHeartRate = value;
   if (value > maxHeartRate) maxHeartRate = value;
 
