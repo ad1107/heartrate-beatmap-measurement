@@ -178,6 +178,10 @@ function connectToGosumemoryWebSocket() {
         state = newState;
       }
 
+      if (menu.bm.time.current - menu.bm.time.firstObj < prevTimeElapsed) {
+        clearChart();
+      }
+
       prevTimeElapsed = timeelapsed;
       timeelapsed = menu.bm.time.current - menu.bm.time.firstObj;
 
