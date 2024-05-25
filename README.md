@@ -2,7 +2,7 @@
 # Heartrate Beatmap Measurement
 
 **Allows recording heartrate data for individual beatmaps**
-![Overlay in Action]()
+![Overlay in Action](https://github.com/ad1107/heartrate-beatmap-measurement/blob/main/readme/demo.png?raw=true)
 # Features
 
 - **Supports all gamemodes**
