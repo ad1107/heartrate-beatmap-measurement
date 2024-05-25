@@ -1,13 +1,13 @@
-// Define the color change functions for the line graph
 let timeChanged;
+let pausedData = [];
+let minHeartRate = Infinity;
+let maxHeartRate = -Infinity;
 
 const paused = (ctx, value) => (timeChanged ? value : undefined);
-
 const unpaused = (ctx, value) => (!timeChanged ? value : undefined);
 
 import { apiKey } from "./config.js";
 
-// Function to format milliseconds to mm:ss format
 function mstommss(ms) {
   var isNeg = ms < 0;
   if (isNeg) ms = Math.abs(ms);
@@ -35,14 +35,16 @@ var data = {
       pointRadius: 5,
       pointBackgroundColor: "#ffffff",
       segment: {
-        borderColor: (ctx) =>
-          paused(ctx, "rgb(192, 57, 43)") || unpaused(ctx, "rgb(22, 160, 133)"),
+        borderColor: (ctx) => {
+          const index = ctx.p1DataIndex;
+          return pausedData[index] ? "rgb(192, 57, 43)" : "rgb(22, 160, 133)";
+        },
       },
     },
   ],
 };
 
-let overflow = 14;
+let overflow = 12;
 let steps = 3;
 
 var config = {
@@ -93,7 +95,6 @@ var config = {
 
 var myChart = new Chart(document.getElementById("myChart"), config);
 
-// Extract tracker ID from URL query parameter
 const urlParams = new URLSearchParams(window.location.search);
 const trackerID = urlParams.get("code");
 
@@ -185,9 +186,7 @@ function connectToGosumemoryWebSocket() {
       prevTimeElapsed = timeelapsed;
       timeelapsed = menu.bm.time.current - menu.bm.time.firstObj;
 
-      document.getElementById("footer").innerText = `${
-        "State: " + state + " | Time Changed? " + timeChanged + "\n"
-      }`;
+      updateFooter();
     } catch (error) {
       console.error("Error parsing local WebSocket message:", error);
     }
@@ -211,9 +210,17 @@ function updateChart(value) {
   document.getElementById("header").innerText = `Current song: ${songTitle}`;
 
   timeChanged = timeelapsed !== prevTimeElapsed;
+  pausedData.push(timeChanged);
 
-  data.labels.push(mstommss(timeelapsed));
+  data.labels.push(timeChanged ? mstommss(timeelapsed) : "Paused");
   data.datasets[0].data.push(value);
+
+  // Update min and max heart rate
+  if (value < minHeartRate) minHeartRate = value;
+  if (value > maxHeartRate) maxHeartRate = value;
+
+  updateFooter();
+
   myChart.update();
   document.getElementById("heartrate-current").innerText = `${value}`;
 }
@@ -221,5 +228,14 @@ function updateChart(value) {
 function clearChart() {
   data.labels = [];
   data.datasets[0].data = [];
+  pausedData = [];
+  minHeartRate = Infinity;
+  maxHeartRate = -Infinity;
   myChart.update();
+}
+
+function updateFooter() {
+  document.getElementById(
+    "footer"
+  ).innerText = `Min: ${minHeartRate} | Max: ${maxHeartRate}`;
 }
