@@ -17,6 +17,9 @@
 - Supply your HypeRate API key on the `config.js` file.
 - Launch `index.html?code=[YOUR CODE]` link and add as a Browser Source in OBS.
 
+- **OR** You can also copy the source code into the `static` folder to launch as an overlay in `gosumemory` with this link [`http://127.0.0.1:24050/heartrate-beatmap-measurement/?code=[YOUR-CODE]`](http://127.0.0.1:24050/heartrate-beatmap-measurement/?code=[YOUR-CODE)
+
+
 # Contributing
 - Currently in GPL v3.0 license.
 - Allow: Commercial use, modification and distribution.\
