@@ -1,10 +1,9 @@
 // Define the color change functions for the line graph
-const down = (ctx, value) =>
-  ctx.p0.parsed.y > ctx.p1.parsed.y ? value : undefined;
-const up = (ctx, value) =>
-  ctx.p0.parsed.y < ctx.p1.parsed.y ? value : undefined;
-const stagnate = (ctx, value) =>
-  ctx.p0.parsed.y == ctx.p1.parsed.y ? value : undefined;
+let timeChanged;
+
+const paused = (ctx, value) => (timeChanged ? value : undefined);
+
+const unpaused = (ctx, value) => (!timeChanged ? value : undefined);
 
 import { apiKey } from "./config.js";
 
@@ -37,9 +36,7 @@ var data = {
       pointBackgroundColor: "#ffffff",
       segment: {
         borderColor: (ctx) =>
-          down(ctx, "rgb(192, 57, 43)") ||
-          up(ctx, "rgb(22, 160, 133)") ||
-          stagnate(ctx, "rgb(149, 165, 166)"),
+          paused(ctx, "rgb(192, 57, 43)") || unpaused(ctx, "rgb(22, 160, 133)"),
       },
     },
   ],
@@ -104,7 +101,7 @@ if (trackerID) {
   connectToHyperateWebSocket(trackerID);
 }
 
-let state, timeelapsed, songTitle, timeChanged;
+let state, timeelapsed, songTitle;
 let shouldUpdateChart = false;
 let prevTimeElapsed = 0;
 
