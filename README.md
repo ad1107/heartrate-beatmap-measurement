@@ -1,20 +1,23 @@
+
 # Heartrate Beatmap Measurement
 
-**(Bridges the gap between osu! and short, simple heartrate measurement for your stream.)**
-
-
+**Allows recording heartrate data for individual beatmaps**
+![Overlay in Action]()
 # Features
 
- ***This project is currently a WIP, features will coming soon!***
+- **Supports all gamemodes**
+- **Song name and maximum/minimum heartrate**
+- **Pausing detection with color change in graph**
+- **Smooth animation**
 
+# Instructions
 
+- Install [`gosumemory`](https://github.com/l3lackShark/gosumemory).
+- Run [`gosumemory.exe`]() (Don't need to run any included overlay)
+- Supply your HypeRate API key on the `config.js` file.
+- Launch `index.html` link and add as a Browser Source in OBS.
 
-
-# Using this code
-- With GPL-v3 license, you can use or edit your code whatever you want for your needs, *without* using it for distributing closed source versions.
-- Since this is a WIP, any contribution is welcome!
-
-# Future goals / "to-do"
-- Proper beatmap and state detection.
-- Simple beatmap info
-- Window size compatibility.
+# Contributing
+- Currently in GPL v3.0 license.
+- Allow: Commercial use, modification and distribution.\
+(Do **not** distribute closed source versions).
