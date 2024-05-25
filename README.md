@@ -15,7 +15,7 @@
 - Install [`gosumemory`](https://github.com/l3lackShark/gosumemory).
 - Run [`gosumemory.exe`]() (Don't need to run any included overlay)
 - Supply your HypeRate API key on the `config.js` file.
-- Launch `index.html` link and add as a Browser Source in OBS.
+- Launch `index.html?code=[YOUR CODE]` link and add as a Browser Source in OBS.
 
 # Contributing
 - Currently in GPL v3.0 license.
