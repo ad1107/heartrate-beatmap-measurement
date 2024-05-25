@@ -1,3 +1,11 @@
+// Define the color change functions for the line graph
+const down = (ctx, value) =>
+  ctx.p0.parsed.y > ctx.p1.parsed.y ? value : undefined;
+const up = (ctx, value) =>
+  ctx.p0.parsed.y < ctx.p1.parsed.y ? value : undefined;
+const stagnate = (ctx, value) =>
+  ctx.p0.parsed.y == ctx.p1.parsed.y ? value : undefined;
+
 import { apiKey } from "./config.js";
 
 // Function to format milliseconds to mm:ss format
@@ -28,8 +36,10 @@ var data = {
       pointRadius: 5,
       pointBackgroundColor: "#ffffff",
       segment: {
-        borderColor: (ctx, timeChanged) =>
-          timeChanged ? "rgb(192, 57, 43)" : "rgb(22, 160, 133)",
+        borderColor: (ctx) =>
+          down(ctx, "rgb(192, 57, 43)") ||
+          up(ctx, "rgb(22, 160, 133)") ||
+          stagnate(ctx, "rgb(149, 165, 166)"),
       },
     },
   ],
@@ -206,11 +216,7 @@ function updateChart(value) {
   timeChanged = timeelapsed !== prevTimeElapsed;
 
   data.labels.push(mstommss(timeelapsed));
-  data.datasets[0].data.push({
-    x: mstommss(timeelapsed),
-    y: value,
-    timeChanged: timeChanged,
-  });
+  data.datasets[0].data.push(value);
   myChart.update();
   document.getElementById("heartrate-current").innerText = `${value}`;
 }
