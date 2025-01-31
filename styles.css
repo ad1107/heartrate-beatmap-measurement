@@ -1,0 +1,93 @@
+body {
+  background-color: #121212;
+  color: #e0e0e0;
+  font-family: Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  margin: 0;
+}
+
+.card {
+  background-color: #1e1e1e;
+  border: none;
+}
+
+.card-header,
+.card-footer {
+  background-color: #1e1e1e;
+  border: none;
+  color: #e0e0e0;
+}
+
+.graph {
+  position: relative;
+}
+
+.topGraphInfo {
+  display: flex;
+  position: absolute;
+  top: 10px;
+  right: 35px;
+  font-size: 48px;
+  color: #e0e0e0;
+  z-index: 10;
+}
+#heart-wrapper {
+  animation: pulse var(--pulse-time) infinite;
+  scale: 0.6;
+  margin-top: -5px;
+  margin-right: -10px;
+}
+
+#pulsingheart {
+  width: 100px;
+  height: 90px;
+}
+
+#pulsingheart:before,
+#pulsingheart:after {
+  position: absolute;
+  content: "";
+  left: 50px;
+  top: 0;
+  width: 50px;
+  height: 80px;
+  background: #aa0000;
+  border-radius: 50px 50px 0 0;
+  transform: rotate(-45deg);
+  transform-origin: 0 100%;
+  animation: pulsecolor var(--pulse-time) infinite;
+}
+
+#pulsingheart:after {
+  left: 0;
+  transform: rotate(45deg);
+  transform-origin: 100% 100%;
+  animation: pulsecolor var(--pulse-time) infinite;
+}
+
+@keyframes pulse {
+  10% {
+    transform: scale(1.1);
+  }
+}
+
+@keyframes pulsecolor {
+  10% {
+    background: #dd0000;
+  }
+}
+
+.card-body {
+  background-color: #262626;
+}
+
+#footer,
+#header {
+  font-size: 30px;
+  text-align: center;
+  color: #e0e0e0;
+}
