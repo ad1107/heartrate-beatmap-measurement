@@ -12,8 +12,10 @@
 
 # Instructions
 
-- Install [`gosumemory`](https://github.com/l3lackShark/gosumemory).
-- Run [`gosumemory.exe`]() (Don't need to run any included overlay)
+**Warning: Due to the hiatus nature of [`gosumemory`](https://github.com/l3lackShark/gosumemory), it is recommended to use [`tosu`](https://github.com/tosuapp/tosu) as it's both in active development and it's compatible with all gosumemory API. However, feel free to use gosumemory with this if you want.**
+
+- Install [`tosu`](https://github.com/tosuapp/tosu).
+- Run [`tosu.exe`]() (Don't need to run any included overlay)
 - Supply your HypeRate API key on the `config.js` file.
 - Launch `index.html?code=[YOUR CODE]` link and add as a Browser Source in OBS.
 
